@@ -12,7 +12,10 @@ class SignatureResponse(BaseModel):
 class GmailDraftCreateRequest(BaseModel):
     """Body for `POST /api/v1/gmail/drafts`."""
 
-    proposal_id: str = Field(description="Id of the proposal this draft is for.")
+    proposal_id: str | None = Field(
+        default=None,
+        description="Id of the proposal this draft is for (the draft id is stored on it).",
+    )
     to: str = Field(description="Recipient email address.")
     subject: str
     body_html: str = Field(description="Email body; the signature is appended by the backend.")

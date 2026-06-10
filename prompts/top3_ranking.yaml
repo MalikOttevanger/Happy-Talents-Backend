@@ -6,9 +6,9 @@
 #
 # Variables injected at render time: opdracht (JSON), candidates (JSON), transcript.
 
-version: 1
+version: 2
 model: gpt-4o
-temperature: 0.2
+temperature: 0
 
 system: |
   Je bent de matching-engine voor Happy Talents, een Nederlandse

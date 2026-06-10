@@ -18,14 +18,28 @@ logger = logging.getLogger(__name__)
 
 
 def _all() -> list[Interimmer]:
-    """Return every interimmer (internal helper)."""
+    """Return every interimmer (internal helper).
+
+    Falls back to the development seed when Supabase is not configured, so
+    matching works locally before the `interimmers` table is provisioned.
+    """
     settings = get_settings()
     if not settings.supabase_enabled:
-        logger.warning("Supabase not configured — interimmer pool is empty.")
-        return []
+        from app.repositories.dev_interimmers import DEV_INTERIMMERS
+
+        logger.warning(
+            "Supabase not configured — using the development interimmer seed (%d).",
+            len(DEV_INTERIMMERS),
+        )
+        return DEV_INTERIMMERS
 
     response = get_supabase().table("interimmers").select("*").execute()
     return [Interimmer(**row) for row in (response.data or [])]
+
+
+def get_all() -> list[Interimmer]:
+    """Return every interimmer (public accessor for the read endpoint)."""
+    return _all()
 
 
 def get_distinct_roles() -> list[str]:
@@ -48,7 +62,7 @@ def get_by_role(role: str) -> list[Interimmer]:
     """
     settings = get_settings()
     if not settings.supabase_enabled:
-        return []
+        return [i for i in _all() if role in i.type_rol]
 
     response = (
         get_supabase()

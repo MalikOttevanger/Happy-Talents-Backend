@@ -116,8 +116,6 @@ termijn kennis te maken.</p>
 <p>We horen graag wat je van het voorstel vindt en of een kennismaking volgende \
 week een mogelijkheid is.</p>
 
-<p>Met vriendelijke groet,<br/>
-Robert Hagen<br/>
-Happy Talents</p>"""
+<p>Met vriendelijke groet,</p>"""
 
     return subject, body

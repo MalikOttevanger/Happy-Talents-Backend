@@ -36,8 +36,9 @@ async def create_gmail_draft(payload: GmailDraftCreateRequest) -> GmailDraftResp
 
     Returns 404 when the proposal is unknown and 502 when Gmail fails.
     """
-    proposal = proposal_repo.get_proposal(payload.proposal_id)
-    if proposal is None:
+    # When a proposal_id is given it must exist (the draft id is stored on it).
+    # The frontend may also send an edited email without a stored proposal.
+    if payload.proposal_id is not None and proposal_repo.get_proposal(payload.proposal_id) is None:
         raise HTTPException(
             status_code=status.HTTP_404_NOT_FOUND,
             detail=f"Proposal not found: {payload.proposal_id}",
@@ -54,5 +55,6 @@ async def create_gmail_draft(payload: GmailDraftCreateRequest) -> GmailDraftResp
     except gmail.GmailError as exc:
         raise HTTPException(status_code=status.HTTP_502_BAD_GATEWAY, detail=str(exc)) from exc
 
-    proposal_repo.set_gmail_draft_id(payload.proposal_id, draft_id)
+    if payload.proposal_id is not None:
+        proposal_repo.set_gmail_draft_id(payload.proposal_id, draft_id)
     return GmailDraftResponse(gmail_draft_id=draft_id)
