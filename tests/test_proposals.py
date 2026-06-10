@@ -50,7 +50,7 @@ def test_build_proposal_email_assembles_subject_and_body():
     assert "2. Gerrit van Oene" in body
     assert "€ 85,-" in body  # primary rate formatted
     assert "Gerrit" in body and "op projectbasis" in body  # secondary mentioned
-    assert "Robert Hagen" in body  # sign-off
+    assert "Met vriendelijke groet," in body  # sign-off (name comes from the Gmail signature)
 
 
 def _store_match() -> str:
