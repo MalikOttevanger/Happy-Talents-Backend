@@ -19,8 +19,13 @@ class RoleSelection(BaseModel):
 
 
 class Candidate(BaseModel):
-    """A ranked candidate in the shortlist."""
+    """A ranked candidate in the shortlist.
 
+    `id` is assigned by the backend when the match is stored (the LLM does not set
+    it); the proposals endpoint selects candidates by this id.
+    """
+
+    id: str | None = None
     naam: str
     matchscore: int | None = Field(default=None, description="0-100, no decimals.")
     matchuitleg: str

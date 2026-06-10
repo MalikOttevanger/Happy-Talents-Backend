@@ -20,8 +20,15 @@ def save_match(
     shortlist: list[Candidate],
     aanbeveling: str,
 ) -> MatchResponse:
-    """Persist a match result and return it with its generated id."""
+    """Persist a match result and return it with its generated id.
+
+    Each candidate also gets a generated id so the proposals endpoint can select
+    a subset by id.
+    """
     match_id = str(uuid.uuid4())
+    for candidate in shortlist:
+        if candidate.id is None:
+            candidate.id = str(uuid.uuid4())
     result = MatchResponse(
         match_id=match_id,
         analysis_id=analysis_id,

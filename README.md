@@ -92,6 +92,23 @@ curl -X POST http://localhost:8000/api/v1/matches \
 
 Returns `201` with the ranked `shortlist` and an `aanbeveling`.
 
+## Try the proposal endpoint
+
+Generates the proposal email for selected candidates of a match. Hybrid: an
+LLM-written intro (`prompts/proposal_intro.yaml`) plus a fixed template assembled
+in `app/services/email_template.py`. `klant_naam` and `klant_bedrijf` come from the
+frontend. Pass the `match_id` from the step above:
+
+```bash
+curl -X POST http://localhost:8000/api/v1/proposals \
+  -H "Content-Type: application/json" \
+  -d '{"match_id": "the-match-uuid", "klant_naam": "Nadine van Dijk", "klant_bedrijf": "Profilians"}'
+```
+
+Returns `201` with `subject` and `body_html`. Creating the actual Gmail draft
+(`POST /api/v1/gmail/drafts`) is a separate endpoint added once Google OAuth2 is
+configured.
+
 ## Prompts
 
 All LLM prompts live in [`prompts/`](./prompts) as YAML (one file per prompt:
