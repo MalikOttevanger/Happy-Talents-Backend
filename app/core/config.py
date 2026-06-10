@@ -19,6 +19,10 @@ class Settings(BaseSettings):
     supabase_url: str = ""
     supabase_service_role_key: str = ""
 
+    # OpenAI (AI analysis).
+    openai_api_key: str = ""
+    openai_model: str = "gpt-4o-2024-08-06"
+
     # Plaud scraping (Selenium / Chromium).
     chromium_path: str = ""
     chromedriver_path: str = ""

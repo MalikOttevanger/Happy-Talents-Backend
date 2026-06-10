@@ -62,6 +62,25 @@ curl -X POST http://localhost:8000/api/v1/transcripts \
 Returns `201` with the transcript id, the flattened `text`, the structured
 `segments`, and the derived `duration_seconds`.
 
+## Try the analysis endpoint
+
+Requires `OPENAI_API_KEY` in `.env`. Pass the `transcript_id` from the step above:
+
+```bash
+curl -X POST http://localhost:8000/api/v1/analyses \
+  -H "Content-Type: application/json" \
+  -d '{"transcript_id": "the-transcript-uuid"}'
+```
+
+Returns `201` with the structured `opdracht_samenvatting` (client need +
+competence profile). The LLM uses OpenAI Structured Outputs.
+
+## Prompts
+
+All LLM prompts live in [`prompts/`](./prompts) as YAML (one file per prompt:
+`system`, `user_template` [Jinja2], `model`, `temperature`, `version`). Edit them
+without touching Python — they are loaded at request time.
+
 ## Tests
 
 ```bash

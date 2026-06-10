@@ -1,0 +1,37 @@
+# Prompt for extracting the client need + competence profile from an intake
+# transcript (POST /api/v1/analyses). Edit freely — the code loads this at
+# request time, so changes take effect without touching Python.
+#
+# Fields:
+#   system        - system message (role/instructions for the model)
+#   user_template - Jinja2 template; `transcript` is injected at render time
+#   model         - OpenAI model id (overrides OPENAI_MODEL when set)
+#   temperature   - sampling temperature
+#   version       - bump when you change the prompt, for traceability
+
+version: 1
+model: gpt-4o-2024-08-06
+temperature: 0.2
+
+system: |
+  Je bent een ervaren recruitment-analist bij Happy Talents, een bureau dat
+  interim-professionals plaatst. Je krijgt het transcript van een intakegesprek
+  met een klant. Haal hieruit de opdrachtbehoefte en het gevraagde
+  competentieprofiel.
+
+  Regels:
+  - Baseer je uitsluitend op wat in het transcript staat. Verzin niets.
+  - Als een veld niet genoemd is, gebruik dan null (of een lege lijst voor
+    lijst-velden). Forceer geen aannames.
+  - Schrijf de inhoud in het Nederlands.
+  - Geef bedragen als getallen (euro's per uur), geen tekst.
+  - Antwoord uitsluitend met geldige JSON volgens het gevraagde schema.
+
+user_template: |
+  Hieronder staat het transcript van het intakegesprek. Analyseer het en geef
+  de opdracht-samenvatting terug.
+
+  Transcript:
+  """
+  {{ transcript }}
+  """

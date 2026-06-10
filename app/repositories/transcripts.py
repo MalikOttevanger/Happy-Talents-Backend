@@ -61,3 +61,23 @@ def save_transcript(
         _memory_store[transcript_id] = result
 
     return result
+
+
+def get_transcript_text(transcript_id: str) -> str | None:
+    """Return the stored transcript text for `transcript_id`, or None if missing."""
+    settings = get_settings()
+
+    if settings.supabase_enabled:
+        response = (
+            get_supabase()
+            .table("transcripts")
+            .select("text")
+            .eq("id", transcript_id)
+            .limit(1)
+            .execute()
+        )
+        rows = response.data or []
+        return rows[0]["text"] if rows else None
+
+    stored = _memory_store.get(transcript_id)
+    return stored.text if stored else None
