@@ -75,6 +75,23 @@ curl -X POST http://localhost:8000/api/v1/analyses \
 Returns `201` with the structured `opdracht_samenvatting` (client need +
 competence profile). The LLM uses OpenAI Structured Outputs.
 
+## Try the matching endpoint
+
+Ranks the interimmer pool against an analysis (top-3, retrieve-then-rank: the LLM
+picks an existing role as the single hard filter — `prompts/role_selection.yaml` —
+then the backend queries that role and the LLM scores the group on soft criteria —
+`prompts/top3_ranking.yaml`). Requires `OPENAI_API_KEY`, and interimmers in
+Supabase (the pool is empty without it). Pass the `analysis_id` from the step
+above:
+
+```bash
+curl -X POST http://localhost:8000/api/v1/matches \
+  -H "Content-Type: application/json" \
+  -d '{"analysis_id": "the-analysis-uuid", "limit": 3}'
+```
+
+Returns `201` with the ranked `shortlist` and an `aanbeveling`.
+
 ## Prompts
 
 All LLM prompts live in [`prompts/`](./prompts) as YAML (one file per prompt:

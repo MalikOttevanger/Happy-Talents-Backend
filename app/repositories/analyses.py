@@ -50,3 +50,29 @@ def save_analysis(
         _memory_store[analysis_id] = result
 
     return result
+
+
+def get_analysis(analysis_id: str) -> AnalysisResponse | None:
+    """Return the stored analysis for `analysis_id`, or None if missing."""
+    settings = get_settings()
+
+    if settings.supabase_enabled:
+        response = (
+            get_supabase()
+            .table("analyses")
+            .select("id, transcript_id, opdracht_samenvatting")
+            .eq("id", analysis_id)
+            .limit(1)
+            .execute()
+        )
+        rows = response.data or []
+        if not rows:
+            return None
+        row = rows[0]
+        return AnalysisResponse(
+            analysis_id=row["id"],
+            transcript_id=row["transcript_id"],
+            opdracht_samenvatting=IntakeExtractie(**row["opdracht_samenvatting"]),
+        )
+
+    return _memory_store.get(analysis_id)
