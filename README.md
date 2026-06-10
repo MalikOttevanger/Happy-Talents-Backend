@@ -1,5 +1,10 @@
 # Happy Talents — Backend
 
+> ⚠️ **Alpha — local only.** This is an early version meant to be run on your own
+> machine for testing; it is **not deployed online**. Run it together with the
+> frontend (see below). Persistence uses an in-memory + dev-seed fallback (no
+> Supabase yet), and Gmail uses a single shared test token.
+
 FastAPI backend for the Happy Talents intake application. Turns a Plaud recording
 into a ready-to-send proposal draft (transcript → AI analysis → top-3 matching →
 Gmail draft).
@@ -29,14 +34,23 @@ pip install -r requirements.txt
 cp .env.example .env   # Windows: copy .env.example .env
 ```
 
-Then fill in `.env`. All values are optional for local development:
+Then fill in `.env`:
 
-- **`SUPABASE_URL` / `SUPABASE_SERVICE_ROLE_KEY`** — when both are set, data is
-  stored in Supabase. When empty, the backend uses an in-memory store so the
-  endpoints work before the database is provisioned.
+- **`OPENAI_API_KEY`** — **required** for the analysis, matching and proposal
+  endpoints (OpenAI). `OPENAI_MODEL` defaults to `gpt-4o-2024-08-06`.
+- **`GOOGLE_CLIENT_ID` / `GOOGLE_CLIENT_SECRET` / `GOOGLE_REFRESH_TOKEN`** —
+  required only for the Gmail endpoints (signature + draft). Test phase uses one
+  shared refresh token (see below).
+- **`SUPABASE_URL` / `SUPABASE_SERVICE_ROLE_KEY`** — optional. When both are set,
+  data is stored in Supabase; when empty the backend uses an in-memory store and a
+  built-in **development interimmer seed**, so every endpoint works locally without
+  a database.
 - **`CHROMIUM_PATH` / `CHROMEDRIVER_PATH`** — leave empty locally (Selenium
   Manager resolves the driver automatically). Set them in Docker / Cloud Run.
 - **`PLAUD_PAGE_TIMEOUT`** — seconds to wait for the Plaud share page (default 20).
+
+> For the testing alpha, ready-to-use credentials are shared separately (ClickUp,
+> Happy Talents space). Paste them into `.env` and you can run the full flow.
 
 ## Run
 
@@ -80,9 +94,10 @@ competence profile). The LLM uses OpenAI Structured Outputs.
 Ranks the interimmer pool against an analysis (top-3, retrieve-then-rank: the LLM
 picks an existing role as the single hard filter — `prompts/role_selection.yaml` —
 then the backend queries that role and the LLM scores the group on soft criteria —
-`prompts/top3_ranking.yaml`). Requires `OPENAI_API_KEY`, and interimmers in
-Supabase (the pool is empty without it). Pass the `analysis_id` from the step
-above:
+`prompts/top3_ranking.yaml`). Requires `OPENAI_API_KEY`. Interimmers come from
+Supabase, or from the built-in development seed when Supabase is not configured —
+so this works locally out of the box. The pool is also exposed at
+`GET /api/v1/interimmers`. Pass the `analysis_id` from the step above:
 
 ```bash
 curl -X POST http://localhost:8000/api/v1/matches \
