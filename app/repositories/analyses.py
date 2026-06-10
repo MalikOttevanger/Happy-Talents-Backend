@@ -9,7 +9,7 @@ import uuid
 
 from app.core.config import get_settings
 from app.repositories.supabase_client import get_supabase
-from app.schemas.analysis import AnalysisResponse, OpdrachtSamenvatting
+from app.schemas.analysis import AnalysisResponse, IntakeExtractie
 
 logger = logging.getLogger(__name__)
 
@@ -19,7 +19,7 @@ _memory_store: dict[str, AnalysisResponse] = {}
 
 def save_analysis(
     transcript_id: str,
-    opdracht_samenvatting: OpdrachtSamenvatting,
+    opdracht_samenvatting: IntakeExtractie,
     job_id: str | None = None,
 ) -> AnalysisResponse:
     """Persist an analysis and return it with its generated id."""

@@ -1,41 +1,50 @@
 """Request/response models for the AI analysis endpoint.
 
-Mirrors `POST /api/v1/analyses` in API.md (§2) and `OpdrachtSamenvatting` in the
-frontend `types.ts`.
+Implements `POST /api/v1/analyses` (API.md §2). The extracted structure is the
+nested `klant` + `opdracht` shape defined for the OpenAI extraction prompt; it is
+stored in the `analyses.opdracht_samenvatting` jsonb column.
 """
+
+from typing import Literal
 
 from pydantic import BaseModel, Field
 
+# Fixed travel-time buckets used across the app.
+ReistijdBucket = Literal["0-30", "30-45", "45-60", "60+"]
+Urgentie = Literal["hoog", "midden", "laag"]
 
-class OpdrachtSamenvatting(BaseModel):
-    """Structured client need + competence profile extracted from a transcript.
 
-    This is also the schema the LLM must return. Fields that the transcript does
-    not mention are null (or an empty list), never invented.
+class Opdracht(BaseModel):
+    """The assignment: role, requirements, terms and context."""
+
+    functietitel: str | None = None
+    omschrijving: str | None = None
+    klant_pijnpunten: str | None = Field(
+        default=None,
+        description="Eén zin: welke problemen/frustraties veroorzaken deze opdracht.",
+    )
+    vereiste_skills: list[str] = Field(default_factory=list)
+    nice_to_have_skills: list[str] = Field(default_factory=list)
+    uren_per_week: int | None = None
+    startdatum: str | None = Field(default=None, description="ISO-datum (YYYY-MM-DD).")
+    einddatum: str | None = Field(default=None, description="ISO-datum (YYYY-MM-DD).")
+    tarief_min: int | None = None
+    tarief_max: int | None = None
+    locatie: str | None = None
+    remote_mogelijk: bool = False
+    max_reistijd_bucket: ReistijdBucket | None = None
+    sector: str | None = None
+    urgentie: Urgentie = "midden"
+
+
+class IntakeExtractie(BaseModel):
+    """Full structured extraction of one intake conversation.
+
+    This is also the schema the LLM must return (OpenAI Structured Outputs), and
+    the object stored in `analyses.opdracht_samenvatting`.
     """
 
-    klant_pijnpunten: str | None = Field(
-        default=None, description="Wat is het probleem/de aanleiding van de klant?"
-    )
-    gevraagde_competenties: list[str] = Field(
-        default_factory=list, description="Gevraagde skills/competenties."
-    )
-    specialisme: str | None = Field(default=None, description="Functie/rol, bv. 'Finance Manager'.")
-    sector_ervaring: list[str] = Field(
-        default_factory=list, description="Relevante sectoren, bv. ['Retail']."
-    )
-    locatie_opdracht: str | None = Field(default=None, description="Locatie van de opdracht.")
-    reistijd_voorkeur_minuten: int | None = Field(
-        default=None, description="Maximale reistijd in minuten."
-    )
-    startdatum: str | None = Field(default=None, description="Gewenste startdatum (ISO of tekst).")
-    contractvorm: str | None = Field(default=None, description="Bv. 'Interim', 'Detachering'.")
-    budget_uur: int | None = Field(default=None, description="Budget per uur in euro's.")
-    duur_opdracht: str | None = Field(default=None, description="Verwachte duur, bv. '6 maanden'.")
-    bijzonderheden: str | None = Field(default=None, description="Overige relevante punten.")
-    persoonlijke_context: str | None = Field(
-        default=None, description="Persoonlijke context van de klant/opdracht."
-    )
+    opdracht: Opdracht
 
 
 class AnalysisCreateRequest(BaseModel):
@@ -49,4 +58,4 @@ class AnalysisResponse(BaseModel):
 
     analysis_id: str
     transcript_id: str
-    opdracht_samenvatting: OpdrachtSamenvatting
+    opdracht_samenvatting: IntakeExtractie

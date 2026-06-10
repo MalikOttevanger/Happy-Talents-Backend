@@ -6,18 +6,23 @@ from fastapi.testclient import TestClient
 
 from app.main import app
 from app.repositories import transcripts as transcript_repo
-from app.schemas.analysis import OpdrachtSamenvatting
+from app.schemas.analysis import IntakeExtractie, Opdracht
 from app.services.analysis import AnalysisProviderError
 from app.services.prompt_loader import load_prompt
 
 client = TestClient(app)
 
-SAMENVATTING = OpdrachtSamenvatting(
-    klant_pijnpunten="Maandrapportages lopen achter.",
-    gevraagde_competenties=["Finance Management", "SAP"],
-    specialisme="Finance Manager",
-    locatie_opdracht="Amsterdam",
-    budget_uur=120,
+SAMENVATTING = IntakeExtractie(
+    opdracht=Opdracht(
+        functietitel="Finance Manager",
+        klant_pijnpunten="Maandrapportages lopen achter.",
+        vereiste_skills=["Finance Management", "SAP"],
+        locatie="Amsterdam",
+        tarief_min=100,
+        tarief_max=120,
+        max_reistijd_bucket="30-45",
+        urgentie="hoog",
+    ),
 )
 
 
@@ -49,8 +54,10 @@ def test_create_analysis_returns_201_with_summary():
     body = response.json()
     assert body["transcript_id"] == transcript_id
     assert body["analysis_id"]
-    assert body["opdracht_samenvatting"]["specialisme"] == "Finance Manager"
-    assert body["opdracht_samenvatting"]["gevraagde_competenties"] == ["Finance Management", "SAP"]
+    samenvatting = body["opdracht_samenvatting"]
+    assert samenvatting["opdracht"]["functietitel"] == "Finance Manager"
+    assert samenvatting["opdracht"]["vereiste_skills"] == ["Finance Management", "SAP"]
+    assert samenvatting["opdracht"]["urgentie"] == "hoog"
 
 
 def test_create_analysis_unknown_transcript_returns_404():

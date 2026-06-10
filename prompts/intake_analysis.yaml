@@ -1,37 +1,54 @@
-# Prompt for extracting the client need + competence profile from an intake
-# transcript (POST /api/v1/analyses). Edit freely — the code loads this at
-# request time, so changes take effect without touching Python.
+# Prompt for extracting structured intake data (POST /api/v1/analyses).
+# Edit freely — the code loads this at request time, so changes take effect
+# without touching Python. The output schema is enforced by OpenAI Structured
+# Outputs (see app/schemas/analysis.py: IntakeExtractie).
 #
 # Fields:
-#   system        - system message (role/instructions for the model)
+#   system        - system message (role/instructions)
 #   user_template - Jinja2 template; `transcript` is injected at render time
 #   model         - OpenAI model id (overrides OPENAI_MODEL when set)
 #   temperature   - sampling temperature
 #   version       - bump when you change the prompt, for traceability
 
-version: 1
+version: 2
 model: gpt-4o-2024-08-06
-temperature: 0.2
+temperature: 0
 
 system: |
-  Je bent een ervaren recruitment-analist bij Happy Talents, een bureau dat
-  interim-professionals plaatst. Je krijgt het transcript van een intakegesprek
-  met een klant. Haal hieruit de opdrachtbehoefte en het gevraagde
-  competentieprofiel.
-
-  Regels:
-  - Baseer je uitsluitend op wat in het transcript staat. Verzin niets.
-  - Als een veld niet genoemd is, gebruik dan null (of een lege lijst voor
-    lijst-velden). Forceer geen aannames.
-  - Schrijf de inhoud in het Nederlands.
-  - Geef bedragen als getallen (euro's per uur), geen tekst.
-  - Antwoord uitsluitend met geldige JSON volgens het gevraagde schema.
+  Je bent een data-extractie assistent voor Happy Talents, een Nederlands
+  interim-bureau. Je extraheert gestructureerde informatie uit intakegesprekken.
+  Antwoord ALLEEN met geldige JSON, geen markdown, geen toelichting. Als een veld
+  ontbreekt in het transcript, zet de waarde op null. Verzin nooit waarden.
+  Reistijd-buckets zijn vast: '0-30', '30-45', '45-60', '60+'. Gebruik ISO-datums
+  (YYYY-MM-DD).
 
 user_template: |
-  Hieronder staat het transcript van het intakegesprek. Analyseer het en geef
-  de opdracht-samenvatting terug.
+  Extraheer de volgende data uit dit intakegesprek en geef het terug als JSON met
+  deze exacte structuur:
+
+  {
+    "opdracht": {
+      "functietitel": string|null,
+      "omschrijving": string|null,
+      "klant_pijnpunten": string|null,
+      "vereiste_skills": [string],
+      "nice_to_have_skills": [string],
+      "uren_per_week": number|null,
+      "startdatum": string|null,
+      "einddatum": string|null,
+      "tarief_min": number|null,
+      "tarief_max": number|null,
+      "locatie": string|null,
+      "remote_mogelijk": boolean,
+      "max_reistijd_bucket": string|null,
+      "sector": string|null,
+      "urgentie": "hoog"|"midden"|"laag"
+    }
+  }
+
+  Bij `klant_pijnpunten`: vat in 1 zin samen welke problemen of frustraties de
+  klant noemt die deze opdracht veroorzaken. Bijv. "Twee teamleden vallen weg
+  waaronder de marketing manager zelf, content marketing-kennis verdwijnt".
 
   Transcript:
-  """
   {{ transcript }}
-  """

@@ -14,7 +14,7 @@ from openai import OpenAI
 from pydantic import ValidationError
 
 from app.core.config import get_settings
-from app.schemas.analysis import OpdrachtSamenvatting
+from app.schemas.analysis import IntakeExtractie
 from app.services.prompt_loader import load_prompt
 
 logger = logging.getLogger(__name__)
@@ -38,7 +38,7 @@ def _client() -> OpenAI:
     return OpenAI(api_key=settings.openai_api_key)
 
 
-def analyse_transcript(transcript_text: str) -> OpdrachtSamenvatting:
+def analyse_transcript(transcript_text: str) -> IntakeExtractie:
     """Run the analysis prompt over `transcript_text` and return the structured result.
 
     Raises AnalysisProviderError on provider failure/refusal and
@@ -56,7 +56,7 @@ def analyse_transcript(transcript_text: str) -> OpdrachtSamenvatting:
                 {"role": "system", "content": prompt.system},
                 {"role": "user", "content": prompt.render_user(transcript=transcript_text)},
             ],
-            response_format=OpdrachtSamenvatting,
+            response_format=IntakeExtractie,
         )
     except ValidationError as exc:
         logger.error("Analysis output failed schema validation: %s", exc)
