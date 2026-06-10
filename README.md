@@ -105,9 +105,30 @@ curl -X POST http://localhost:8000/api/v1/proposals \
   -d '{"match_id": "the-match-uuid", "klant_naam": "Nadine van Dijk", "klant_bedrijf": "Profilians"}'
 ```
 
-Returns `201` with `subject` and `body_html`. Creating the actual Gmail draft
-(`POST /api/v1/gmail/drafts`) is a separate endpoint added once Google OAuth2 is
-configured.
+Returns `201` with `subject` and `body_html`.
+
+## Try the Gmail endpoints (test phase)
+
+Creating a real Gmail draft uses a single, manually-generated OAuth2 refresh token
+(no per-user SSO yet). Set `GOOGLE_CLIENT_ID`, `GOOGLE_CLIENT_SECRET` and
+`GOOGLE_REFRESH_TOKEN` in `.env`.
+
+To get a refresh token for the test phase:
+1. Open the [Google OAuth Playground](https://developers.google.com/oauthplayground).
+2. Authorize the scopes `https://www.googleapis.com/auth/gmail.compose` and
+   `https://www.googleapis.com/auth/gmail.settings.basic` (use your own client
+   id/secret via the gear icon → "Use your own OAuth credentials").
+3. Exchange the auth code for tokens and copy the **refresh token** into `.env`.
+
+```bash
+# Read the signature live from Gmail
+curl http://localhost:8000/api/v1/users/me/signature
+
+# Create a draft for a proposal (signature is appended automatically)
+curl -X POST http://localhost:8000/api/v1/gmail/drafts \
+  -H "Content-Type: application/json" \
+  -d '{"proposal_id": "the-proposal-uuid", "to": "klant@bedrijf.nl", "subject": "Voorstel...", "body_html": "<p>...</p>"}'
+```
 
 ## Prompts
 

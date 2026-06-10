@@ -28,6 +28,18 @@ class Settings(BaseSettings):
     chromedriver_path: str = ""
     plaud_page_timeout: int = 20
 
+    # Google / Gmail (test phase: a single manually-generated refresh token).
+    google_client_id: str = ""
+    google_client_secret: str = ""
+    google_refresh_token: str = ""
+
+    @property
+    def gmail_enabled(self) -> bool:
+        """True when the Gmail OAuth2 credentials are all configured."""
+        return bool(
+            self.google_client_id and self.google_client_secret and self.google_refresh_token
+        )
+
     @property
     def supabase_enabled(self) -> bool:
         """True when both Supabase credentials are configured."""

@@ -47,3 +47,38 @@ def save_proposal(
         _memory_store[proposal_id] = result
 
     return result
+
+
+def get_proposal(proposal_id: str) -> ProposalResponse | None:
+    """Return the stored proposal for `proposal_id`, or None if missing."""
+    settings = get_settings()
+
+    if settings.supabase_enabled:
+        response = (
+            get_supabase()
+            .table("proposals")
+            .select("id, subject, body_html")
+            .eq("id", proposal_id)
+            .limit(1)
+            .execute()
+        )
+        rows = response.data or []
+        if not rows:
+            return None
+        row = rows[0]
+        return ProposalResponse(
+            proposal_id=row["id"], subject=row["subject"], body_html=row["body_html"]
+        )
+
+    return _memory_store.get(proposal_id)
+
+
+def set_gmail_draft_id(proposal_id: str, gmail_draft_id: str) -> None:
+    """Store the Gmail draft id on a proposal."""
+    settings = get_settings()
+
+    if settings.supabase_enabled:
+        get_supabase().table("proposals").update({"gmail_draft_id": gmail_draft_id}).eq(
+            "id", proposal_id
+        ).execute()
+    # In-memory proposals don't track the draft id separately; nothing to do.
